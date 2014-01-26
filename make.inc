@@ -12,7 +12,7 @@
 #
 # The default compiler and mode are specified here.
 #
-FC = F
+FC = gfortran
 MODE = debug
 
 
