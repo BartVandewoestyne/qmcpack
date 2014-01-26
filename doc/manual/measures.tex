@@ -1,0 +1,92 @@
+\chapter{Measuring the quality of point sets}
+
+\begin{itemize}
+\item Explain discrepancy, and explain what kind of routines \qmcpack{} provides
+      to calculate it.
+\end{itemize}
+
+For a set $J \subseteq [0,1)^s$ and a sequence $P$ of $N$ points $\vec{x}_i,\
+i=1,\ldots,N$, in $[0,1)^s$, define
+\begin{equation} \label{eq:local_discrepancy}
+R_N(J) := \frac{1}{N}\sum{\chi_J(\vec{x}_n)}-\Vol(J),
+\end{equation}
+where $\chi_J$ is the characteristic function of $J$ and $\Vol(J)$ is the volume
+of $J$.
+If $E^*$ is the set of sub-rectangles from $[0,1)^s$ with one corner at $\vec{0}$, then the
+$L_{\infty}$ star discrepancy is defined as
+\[
+D_N^*(P) := \sup_{J \in E^*}|R_N(J)|.
+\]
+If $E$ is the set of all sub-rectangles from $[0,1)^s$, then the $L_{\infty}$
+extreme discrepancy is defined as
+\[
+D_N(P) := \sup_{J \in E}|R_N(J)|.
+\]
+For a one-dimensional pointset $\{x_1,\ldots,x_N\}$ with $0 \leq x_1 \leq x_2 \leq \cdots \leq x_N \leq 1$ we have that
+\[
+D_N^*(x_1,\ldots,x_n) = \frac{1}{2N} + \max_{1 \leq n \leq N} \left| x_n -
+\frac{2n-1}{2N}\right|,
+\]
+and
+\[
+D_N(x_1,\ldots,x_n) = \frac{1}{N}
+                        + \max_{1\leq n \leq N}\left(\frac{n}{N}-x_n\right)
+                        - \min_{1\leq n \leq N}\left(\frac{n}{N}-x_n\right),
+\]
+which can be calculated in \qmcpack{} as
+\begin{lstlisting}
+call d_n_star1d(x, d_n_star)
+\end{lstlisting}
+respectively
+\begin{lstlisting}
+call d_n_extreme1d(x, d_n_extreme)
+\end{lstlisting}
+with \verb!x! the rank 1 array containing the pointset and \verb!d_n_star! and \verb!d_n_extreme! the results.
+
+The $L_2$ star discrepancy of an $s$-dimensional point set $P$ is defined as
+\[
+T_N^*(P) := \left[ \int_{I^s} \left( R_N(J(\vec{x}))\right)^2 d\vec{x}\right]^\frac{1}{2},
+\]
+where $J(\vec{x})$ is the rectangle with opposite corners at $\vec{0}$ and
+$\vec{x}$.
+
+If $x_k^{(i)}$ denotes the $i$-th component of the
+$s$-dimensional point $\vec{x}_k$ in a point set $P$, then it can be shown
+\cite{warnock72} that the square of the $L_2$ star discrepancy of $P$ is given
+by
+\begin{equation}
+\label{eq:def T_N}
+[T_N^*(P)]^2 =
+  \frac{1}{N^2}\sum_{k=1}^N\sum_{m=1}^N\prod_{i=1}^s\left(1-\max(x_k^{(i)},x_m^{(i)})\right)
+  - \frac{2^{1-s}}{N} \sum_{k=1}^{N} \prod_{i=1}^s\left(1-{x_k^{(i)}}^2\right)
+  + 3^{-s}.
+\end{equation}
+
+In QMCPACK, the \emph{square} of the $L_2$ star discrepancy can be calculated
+with
+\begin{lstlisting}
+call T_N_star_squared(x, tn2)
+\end{lstlisting}
+where \verb!x! is a rank 2 array representing the pointset.  Important to notice is that $x_k^{(i)}$ must be represented as \verb|x(i,k)|, so the first
+dimension of the array
+\verb|x| represents the different dimensions of the pointset, while the second
+dimension of \verb!x! is used for indexing the different points.
+The cumulative results are stored in the rank 1 array \verb!tn2!, so
+\verb!tn2(i)! contains $(T_i^*)^2$, the square of the $L_2$ star discrepancy
+of the first \verb!i! points.
+
+Similarly, if $J(\vec{x})$ can be any cube, then this is called the $L_2$
+extreme discrepancy and it can be calculated via the formula (See
+\cite{morokoff94caflish})
+\begin{align} \label{eq:t_n_extreme}
+[T_N(P)]^2 &=
+  \frac{1}{N^2}\sum_{k=1}^N\sum_{m=1}^N\prod_{i=1}^s\left[1-\max(x_k^{(i)},x_m^{(i)})\right] \cdot \min(x_k^{(i)},x_m^{(i)}) \notag \\
+           & \quad
+  - \frac{2^{1-s}}{N} \sum_{k=1}^{N} \prod_{i=1}^s\left(1-{x_k^{(i)}}\right)x_k^{(i)} + 12^{-s}.
+\end{align}
+and in \qmcpack{} this is done with
+\begin{lstlisting}
+call T_N_extreme_squared(x, tn2)
+\end{lstlisting}
+Concerning the arguments, the same remarks as for the $L_2$ star discrepancy
+are valid.

@@ -1,0 +1,53 @@
+\documentclass[a4paper]{book}
+
+\bibliographystyle{plain}
+
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{url}
+\usepackage{algorithm,algorithmic}
+
+\title{QMCPACK User Manual}
+\author{Bart Vandewoestyne}
+
+\newcommand{\qmcpack}{QMCPACK}
+\newcommand{\Vol}{\mathrm{Vol}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newenvironment{Todo}
+  {TODO:\\}
+  {}
+
+\DeclareMathOperator{\BigO}{O}
+\DeclareMathOperator{\littleo}{o}
+
+
+\begin{document}
+
+\lstset{language=[95]Fortran,
+        basicstyle=\ttfamily,
+        keywordstyle=\color{blue},
+        commentstyle=\color{red},
+        xleftmargin=5mm}
+
+\maketitle
+
+\tableofcontents
+
+\input{installation.tex}
+
+\input{introduction.tex}
+
+\input{lds_sequences.tex}
+
+\input{measures.tex}
+
+\input{haselgrove_niederreiter.tex}
+
+\input{periodizing_transformations.tex}
+
+\input{test_integrals.tex}
+
+\bibliography{../../../../latex/bib/mybib.bib,../../../../latex/bib/mymissingbib.bib}
+
+\end{document}

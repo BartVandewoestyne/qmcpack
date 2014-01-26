@@ -1,0 +1,91 @@
+\chapter{\qmcpack{} installation}
+
+\section{System requirements}
+
+To be able to compile and use \qmcpack{}, the following is required:
+
+\begin{itemize}
+\item The \texttt{makedepf90} program must be somewhere in your execution path.
+      \texttt{makedepf90} is obtainable from
+      \begin{quote}
+      \url{http://www.helsinki.fi/~eedelman/makedepf90.html}
+      \end{quote}
+\item A working Fortran 90/95 compiler should be present.  \qmcpack{} has been
+      tested and should work with at least the following compiler-versions:
+      \begin{center}
+       \begin{tabular}{|ccl|} \hline
+          compiler               & most recent tested version & website \\ \hline
+          G95                    & GCC 4.0.1 (g95!) Mar 11 2006 & \url{http://www.g95.org/} \\
+          GNU Fortran 95         & GCC 4.1.0 20050907 & \url{http://gcc.gnu.org/fortran/} \\
+          NAGWare f95            & Release 5.0 (Edit 414) & \url{http://www.nag.com/} \\
+          F                      & Release 20031017 & \url{http://www.fortran.com/F/} \\
+          Intel Fortran Compiler & Version 9.0, Build 20050430 & \url{http://www.intel.com/} \\ \hline
+       \end{tabular}
+      \end{center}
+      If it doesn't, please send us a bug report.
+
+\item The \verb!make! program to build the whole project.
+\end{itemize}
+
+\section{Installing \qmcpack{}}
+
+After unpacking the \verb!.tar.gz! file, change into the top-level directory
+and open the \verb|make.inc| file.  Edit this file to your own needs, it should
+be self-explanatory what to change.  The most important variables to set are
+\verb!FC! for the Fortran 95 compiler to use, \verb!MODE! which can be either
+\verb!debug! or \verb!optimized!, and \verb!INSTALLDIR! which is the location
+where the library and module files should be installed.
+
+Once that is done, a simple
+\begin{verbatim}
+make
+\end{verbatim}
+will build the library, the tests and the timings using the default compiler
+specified at the top of the \verb!make.inc! file.
+If you only want to build the library, then a simple
+\begin{verbatim}
+make qmclib
+\end{verbatim}
+should be enough.  If you only want to build the tests or the timings, then
+simply use
+\begin{verbatim}
+make tests
+\end{verbatim}
+or
+\begin{verbatim}
+make timings
+\end{verbatim}
+To clean up everything, type
+\begin{verbatim}
+make clean
+\end{verbatim}
+or
+\begin{verbatim}
+make realclean
+\end{verbatim}
+The \verb!clean! target is a bit less agressive than the \verb!realclean!
+target.
+
+To use the \qmcpack{} library for your own programs, simply add the appropriate
+USE-statement to your Fortran program:
+\begin{verbatim}
+use qmcpack
+\end{verbatim}
+and make sure that the \qmcpack{} installation directory that you specified in
+the \verb!make.inc! file is added to the module and
+library search path of your Fortran compiler.  How to add these directories to the appropriate paths is
+compiler-dependent.  See the manual of your compiler on how to do this.
+
+All of the above \verb!make!-commands will use the default compiler and
+compile-mode as specified in the \verb!make.inc! file.
+Compiling with another compiler can simply be done by overriding the \verb!FC!
+makefile-variable.
+\begin{verbatim}
+make FC=<F|g95|ifc|ifort|gfortran>
+\end{verbatim}
+where you should choose one of the compilers specified between the brackets.
+The compile-mode can be specified by overriding the \verb!MODE!
+makefile-variable:
+\begin{verbatim}
+make MODE=<debug|optimized|profile>
+\end{verbatim}

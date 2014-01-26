@@ -1,0 +1,123 @@
+\chapter{Introduction}
+
+\section{Numeric kinds}
+
+Following the portable programming paradigms used in current Fortran 95,
+\qmcpack{} defines its own numeric kinds in the \verb!numeric_kinds! module.
+This module provides the following four integer kinds:
+\begin{center}
+\begin{tabular}{cc}
+Integer kind & Maximum value \\ \hline
+\verb!i1b! & $10^2$ \\
+\verb!i2b! & $10^4$ \\
+\verb!i4b! & $10^9$ \\
+\verb!i8b! & $10^{18}$ \\ \hline
+\end{tabular}
+\end{center}
+%
+The following real kinds are also supported:
+%
+\begin{center}
+\begin{tabular}{cc}
+Real kind & precision \\ \hline
+\verb!sp! & single    \\
+\verb!dp! & double    \\
+\verb!qp! & quadruple if available, double otherwise \\ \hline
+\end{tabular}
+\end{center}
+%
+Note that for the integer kinds, most combinations of architecture and compiler
+will support \verb!i1b!, \verb!i2b! and \verb!i4b! but \verb!i8b!
+might not always be available.
+
+The real kinds are special in the sence that the concepts of `single', `double'
+and `quadruple' precision should not be associated with byte-lenghts but must 
+be interpreted as \emph{abstract} concepts of precision.  The only rules that
+apply are that `single' precision is the least significant type of reals on an
+architecture.  Variables of `double' precision will have twice the decimal
+precision of a `single precision' variable and `quadruple precision'
+variables will have twice the precision of a `double' precision variable.
+If `quadruple' precision is not available, variables of type \verb!qp! will
+have the same precision as variables of type \verb!dp!.
+
+To see what kinds are available for your combination of architecture and
+compiler, the program \texttt{test\_numeric\_kinds} located under the
+\texttt{tests} directory can be used.
+
+\section{Points and functions} \label{sec:points_functions}
+
+An $s$-dimensional point in \qmcpack{} is represented by a rank one
+array, being either of fixed size 
+%
+\begin{lstlisting}
+real(kind=qp), dimension(5) :: x
+...
+x = (/ 0.1_qp, 0.2_qp, 0.3_qp, 0.4_qp, 0.5_qp /)
+\end{lstlisting}
+%
+or being an allocatable array
+%
+\begin{lstlisting}
+real(kind=qp), dimension(:), allocatable :: x
+...
+allocate(x(5))
+x = (/ 0.1_qp, 0.2_qp, 0.3_qp, 0.4_qp, 0.5_qp /)
+...
+deallocate(x)
+\end{lstlisting}
+%
+Functions in \qmcpack{} can have parameters and can be divided into two groups:
+\begin{itemize}
+\item functions acting on a single $s$-dimensional point, which return one single value for the function evaluated at that point.
+\item functions acting on $N$ $s$-dimensional points at the same time and which
+return a rank one array of length $N$ containing the function values at those
+points.
+\end{itemize}
+%
+The first type of functions follows the naming convention
+\begin{lstlisting}
+f_name_1p(x, params) result (y)
+\end{lstlisting}
+where \verb!x! is a one-dimensional array of kind \verb!qp! and \verb!y! is a
+single variable of kind \verb!qp!.  The second type of functions have the
+naming convention
+\begin{lstlisting}
+f_name_np(x, params) result (y)
+\end{lstlisting}
+where \verb!x! is now an $s \times N$ dimensional array.  Important to note
+is that the \emph{rows} of \verb!x! represent the different \emph{dimensions}
+for the pointset \verb!x!!
+
+Both types of functions can take parameters.  The parameters given as an
+argument to a function must be of the derived-type
+\begin{lstlisting}
+type, public :: functionparams
+  real(kind=qp), dimension(:), pointer :: a
+  real(kind=qp), dimension(:), pointer :: c
+  real(kind=qp), dimension(:), pointer :: u
+end type functionparams
+\end{lstlisting}
+%
+Before variables of this type can be passed as parameters to functions, memory
+for them must be allocated and certain parameters must be assigned a value with
+\begin{lstlisting}
+call allocate_function_parameters(params, s)
+\end{lstlisting}
+Assuming \verb!x! is a single three-dimensional point, the typical way of
+allocating memory and assigning values to the parameters is as follows:
+\begin{lstlisting}
+real(kind=qp), dimension(3) :: x
+real(kind=qp)               :: y
+type(functionparams)        :: params
+...
+s = size(x)
+call allocate_function_parameters(params, s)
+...
+params%a = (/ 0.1_qp, 0.2_qp, 0.3_qp /)
+params%u = (/ 0.3_qp, 0.2_qp, 0.1_qp /)
+...
+y = f_name_1p(x, params)
+\end{lstlisting}
+Note that of course, only the parameters being used for the function evaluation
+must be assigned a value.  Functions that don't take parameters still must have
+a dummy argument \verb!params!.

@@ -1,0 +1,69 @@
+                        QMCPACK's TODO-list
+                        -------------------
+
+Things that can be added:
+-------------------------
+
+* Add things for lattice-rules such as for example:
+
+    - the `generator matrix' associated with the generator set {g_1,...,g_s}
+      (See SloanJoe page 21).
+    - the sparcity of a lattice through the determinant of the lattice
+      and the average number of lattice points per unit volume (See SloanJoe
+      page 21).
+    - the order of a lattice rule, see formula (2.14) on page 24 SloanJoe.
+    - generating lattice rules.
+    - the generator matrix for the dual lattice.
+    - shifting a lattice rule with shift c (See 2.21 on page 28 SloanJoe).
+    - creating the n^s copy of a lattice rule.
+    - calculating the quantity P_alpha(L) as a quality measure for lattice
+      rules (See formula page 7 in Hickernell's report `Lattice Rules, how
+      well do they measure up').
+
+* Add a Fortran-translation of E. Thiemard's discrepancy calculation program
+  (and maybe do timing tests to see if it runs considerably faster in Fortran?).
+
+* Add the Nested Weyl Sequence (NWS) and the Shuffled Nested Weyl
+  Sequence (SNWS).
+
+* Add the `Lehmer sequence'.  See e.g.
+  http://jeff.cs.mcgill.ca/~luc/weylpaper.ps
+
+* Add Maisonneuve's testfunctions.
+
+* Add the three Faure methods:
+    * Generalized Faure by Tezuka and Tokuyama
+    * Generalized Faure by Faure
+    * Original Faure
+
+* Add Niederreiter(-Xing) pointset.
+
+* Add a module for Asian, European,... options.
+
+* Add the non-graycode way of generating Sobol sequences.
+
+* Add the possibility to shuffle sequences (See Hess and Polak's work).
+
+* Add the different scramblings from the paper of Matousek:
+
+    - Digital Shift as described in that paper or on page 11 of the
+      RandQMC user manual.
+    - Random Linear Scrambling (see page 16 of RandQMC library).
+
+* Add a decent testing framework (DejaGnu, others... ???).
+
+* ... there's always room for nice extra functionality, feel free to send
+  us yours! :-)
+
+
+Things that can be improved:
+----------------------------
+
+* Check if there are still modules that require free_xxx() methods.
+
+* Add possibility to use a step value for Halton sequences, so we can use
+  leaped Halton sequences.  Make sure each dimension can be leaped with
+  another integer.
+
+* Let the permutations have indexes from 0:b-1 instead of from 1:b.  This
+  would be a more natural approach....

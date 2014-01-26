@@ -1,0 +1,87 @@
+Known bugs and things that should be looked at...
+-------------------------------------------------
+* Faure with 1000 points in 20 dimensions segfaults when compiled with g95
+  and all debug options on.
+
+* test_permutation gives a runtime error when compiled with ifc (7.0) and all
+  debug options on.  The compiler claims to have found an indexing problem
+  somewhere in init_permutations() ???
+  I do however think this is not a bug in the code, but rather a bug in the
+  Intel compiler.  Later versions of the Intel compiler will probably compile
+  and run this cleanly...
+
+* There is a problem with 1-dimensional Sobol sequences.  For now, it's best
+  to only use s-dimensional Sobol sequences with s>1.  Sorry for this
+  inconvenience ;-)
+
+* With Intel(R) Fortran Compiler for 32-bit applications, Version 9.0    Build
+  20050430Z test_discrepancy seems to segfault on my computer at home.  Don't
+  know if this is due to memory problems or some other bug...  The F compiler
+  doesn't seem to have this problem...
+
+* When compiled with g95, test_faure seems to have problems opening the
+  reference test-data files.  All seems fine with F and f95, so my guess
+  is that this is a g95 bug...
+
+* Find out why we got the segmentation fault after changing pub_takhtamyshev.f95
+  to a non-skipped version (and if this segmentation fault actually still
+  appears... I can't remember the last time i've seen it, nor can i reproduce
+  it)
+
+ #################### RUNNING TESTS FOR RICHTMYER PAPER ############
+ How many random integrals do you want to generate for each test?
+ Enter the dimension of the problem:
+ Enter the maximum power of 2 for the number of points:
+ n =  4194303
+ s =  1000
+ Enter test-integral:
+  1) f_c0
+  2) f_sobol03asotsky
+  3) f_bart_george_f01
+  4) f_gaussian
+ Enter the parameter a:
+ a(:) =    3.4299999999999997E-02
+ *** RUN  1  ***
+ Exact value of integral:       1.0283036616858164E-05
+   Pseudorandom method found:   1.0283675091487879E-05
+   Square root method found:    1.0283012150196855E-05
+   Sobol method found:          1.0283253321303602E-05
+ *** RUN  2  ***
+ Exact value of integral:       1.0563874158606590E-05
+   Pseudorandom method found:   1.0563585957845683E-05
+   Square root method found:    1.0563825667205801E-05
+./generate_all_outputs.sh: line 12: 13496 Segmentation fault      ~/research/fortran/qmcpack/our_pubs/pub_takhtamyshev01 <f_c0_dim1000_a0p0343.txt
+
+--------------------------------------------------------------------------------
+ ....
+ Exact value of integral:       1.0403364542944456E-05
+   Pseudorandom method found:   1.0404156517459348E-05
+   Square root method found:    1.0403312525877678E-05
+   Sobol method found:          1.0403456645753049E-05
+ *** RUN  12  ***
+ Exact value of integral:       1.1879323601704258E-05
+   Pseudorandom method found:   1.1879970121122949E-05
+   Square root method found:    1.1879298402612794E-05
+./generate_all_outputs.sh: line 12: 26568 Segmentation fault      ~/research/fortran/qmcpack/our_pubs/pub_takhtamyshev01 <f_c0_dim1000_a0p0343.txt
+
+--------------------------------------------------------------------------------
+
+When compiling with ifc and all checking options, we probably get (not sure anmymore...):
+
+Run-Time Error 406: Array bounds exceeded
+
+--------------------------------------------------------------------------------
+
+Possible causes:
+
+  => Writing outside the range of an array?
+     Use `ftncheck' and the runtime array bounds checking for checking this.
+  => Talking to an unassociated/unallocated array?
+  => Taking the sqrt out of a negative value?
+  => Certain limits on the environment (stacksizes and such)?
+     Try to remove or increase them to the max:
+	`limit stacksize unlimited'
+	or
+	`ulimit -s unlimited'
+  => Does it have to do with the fact that i was changing the library while
+     i was running a program that was compiled against it?

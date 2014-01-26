@@ -1,0 +1,166 @@
+\chapter{Periodizing transformations} \label{chap:periodizing_transformations}
+
+%\begin{itemize}
+%\item Explain the principle of periodizing transformations?
+%\item What kind of transformations does qmcpack support?
+%\item How did we implement things and how should you use it?
+%\end{itemize}
+
+Certain integration methods are only applicable for integrands that are
+periodic over the unit hypercube.  If
+the integrand is not periodic then it first has to be ``periodized'' before
+the integration technique can be applied.  This section explains what kind of
+transformations are implemented in \qmcpack{}.
+
+If the integral to be calculated is
+\[
+I = \int_{[0,1)^s}f(x_1,\ldots,x_s)dx_1\cdots dx_s,
+\]
+then by applying a change of variable of the form
+\begin{eqnarray*}
+x_1 & = & \psi_1(t_1,\ldots,t_s),\quad \psi_1({\bf 0})={\bf 0},\quad \psi_1({\bf 1})={\bf 1}, \\
+    & \vdots & \\
+x_s & = & \psi_s(t_1,\ldots,t_s),\quad \psi_s({\bf 0})={\bf 0},\quad \psi_s({\bf 1})={\bf 1},
+\end{eqnarray*}
+and defining the Jacobian matrix as
+\[
+J(t_1, \ldots, t_s) =
+\left[
+\begin{array}{ccc}
+\frac{\partial \psi_1}{\partial t_1} & \cdots & \frac{\partial \psi_1}{\partial t_s} \\
+\vdots & & \vdots \\
+\frac{\partial \psi_s}{\partial t_1} & \cdots & \frac{\partial \psi_s}{\partial t_s} \\
+\end{array}
+\right]
+\]
+the integral is rewritten as
+\begin{equation} \label{eq:transformed_integral}
+I = \int_{[0,1)^s}f(\psi_1(t_1,\ldots,t_s),\ldots,\psi_s(t_1,\ldots,t_s))|J(t_1,\ldots,t_s)|dt_1\cdots dt_s.
+\end{equation}
+\qmcpack{} takes $\psi_i(t_1,\ldots,t_s)=\psi(t_i)$ for $i=1,\ldots,s$ so
+(\ref{eq:transformed_integral}) becomes
+\[
+I = \int_{[0,1)^s} f(\psi(t_1),\ldots,\psi(t_s))\psi'(t_1) \cdots
+\psi'(t_s)dt_1\cdots dt_s.
+\]
+To obtain the value
+\[
+f(\psi(x_1),\ldots,\psi(x_s))\psi'(x_1) \cdots \psi'(x_s)
+\]
+for a certain transformation, a user has to call
+\begin{lstlisting}
+call periform(f, params, x, method, y_periodized)
+\end{lstlisting}
+Where \verb!f! is the function to be periodized, acting on a single
+$s$-dimensional point
+\verb!x! and accepting certain parameters as explaind in
+section \ref{sec:points_functions}.  After the call, the result will be stored
+in \verb!y_periodized! and the transformation method to be used can be specified
+via a string having one of the values from table \ref{tab:periodizers}.
+\begin{table}
+\centering
+\begin{tabular}{|c|c|} \hline
+Periodizing method & string to be used \\ \hline
+no periodizing     & \verb!none! \\
+Sidi               & \verb!Sidi! \\
+Sloan and Joe 1    & \verb!SloanJoe01! \\
+Sloan and Joe 2    & \verb!SloanJoe02! \\
+Laurie             & \verb!Laurie! \\ \hline
+\end{tabular}
+\caption{Periodizing transformations currently available in QMCPACK.}
+\label{tab:periodizers}
+\end{table}
+
+In what follows, we give an overview of the transformations that QMCPACK
+supports.
+
+\section{Sidi's $\sin^m$-transformation (1993)}
+
+Sidi's $\sin^m$ transformation \cite{sidi93} is defined by
+\[
+\psi(t) = \frac{\int_{0}^{t}(\sin(\pi u))^mdu}{\int_{0}^{1}(\sin(\pi u))^mdu}, \quad m=1, 2, \ldots
+\]
+For different $m$-values, and with the help of some symbolic calculation software, this leads to the transformations from table \ref{tab:sidi_transformations}.
+%
+\begin{table}[h]
+%\scriptsize
+\centering
+\begin{tabular}{|c|c|c|} \hline
+$m$ & $\psi(t)$                                             & $\psi'(t)$                                                            \\ \hline
+1   & $\frac{1}{2}(1-\cos(\pi t))$                          & $\frac{1}{2}\pi \sin(\pi t)$                                          \\
+2   & $\frac{1}{2\pi}(2\pi t-\sin(2\pi t))$                 & $2-2(\cos(\pi t))^2$                                                  \\
+3   & $\frac{1}{16}(8-9\cos(\pi t)+\cos(3\pi t))$           & $-\frac{3\pi}{4}\sin(\pi t)((\cos(\pi t))^2-1)$                       \\
+4   & $\frac{1}{12\pi}(12\pi t-8\sin(2\pi t)+\sin(4\pi t))$ & $-\frac{16}{3}(\cos(\pi t))^2+\frac{8}{3}(\cos(\pi t))^4+\frac{8}{3}$ \\ \hline
+\end{tabular}
+\caption{Sidi's variable transformations for different values of $m$.}
+\label{tab:sidi_transformations}
+\end{table}
+%
+Currently, only the transformation for $m=1$ is supported via the method
+\verb|"Sidi"|
+
+\section{Sloan and Joe's polynomial transformations (1994)}
+
+In their book (\cite{sloan94joe}, page 33), Sloan and Joe use the following polynomial transformations:
+\begin{equation} \label{eq:sloan_jo_transfo}
+\psi_1(t) = 3t^2-2t^3, \quad 0 \leq t \leq 1,
+\end{equation}
+for which the derivative is
+\[
+\psi_1'(t) = 6t(1-t), \quad 0 \leq t \leq 1.
+\]
+And
+\[
+\psi_2(t) = t^3(10-15t+6t^2),
+\]
+for which the derivative is
+\[
+\psi_2'(t) = 30t^2(1-t)^2.
+\]
+Both transformations are available in QMCPACK as the methods \verb!"SloanJoe01"!
+and \verb!"SloanJoe02"!.
+
+\section{Laurie's periodizing transformation (1996)}
+
+Laurie's periodizing transformations \cite{laurie96} are defined by
+\[
+\psi(t) = \frac{\int_{0}^{t}w(s)ds}{\int_{0}^{1}w(s)ds}
+\]
+where $w(s)$ is a certain weight-function depending on a certain $m$-value.
+For different $m$-values and the corresponding weight-functions, Laurie's
+transformations are given by the polynomials from table
+$\ref{tab:laurie_transformations}$.
+%
+\begin{table}
+\small
+\centering
+\begin{tabular}{|c|c|} \hline
+$m$ & $\psi(x)$ \\ \hline
+2 & $-6\,{t}^{7}+21\,{t}^{6}-21\,{t}^{5}+7\,{t}^{3}$  \\
+%
+4 & ${\frac {126}{13}}\,{t}^{13}-63\,{t}^{12}+{\frac {1806}{11}}\,{t}^{11}-
+210\,{t}^{10}+119\,{t}^{9}-24\,{t}^{7}+{\frac {21}{5}}\,{t}^{5}$  \\
+%
+6 & $-{\frac {11298}{551}}\,{t}^{19}+{\frac {5649}{29}}\,{t}^{18}-{\frac {
+794493}{986}}\,{t}^{17}+{\frac {218295}{116}}\,{t}^{16}-{\frac {77448}
+{29}}\,{t}^{15}+{\frac {65583}{29}}\,{t}^{14}-{\frac {27804}{29}}\,{t}
+^{13}+{\frac {4095}{29}}\,{t}^{11}-{\frac {1547}{58}}\,{t}^{9}+3\,{t}^
+{7}$  \\ \hline
+$m$ & $\psi'(x)$ \\ \hline
+2 & $-42\,{t}^{6}+126\,{t}^{5}-105\,{t}^{4}+21\,{t}^{2}$ \\
+%
+4 & $126\,{t}^{12}-756\,{t}^{11}+1806\,{t}^{10}-2100\,{t}^{9}+1071\,{t}^{8}
+-168\,{t}^{6}+21\,{t}^{4}$ \\
+%
+6 & $-{\frac {11298}{29}}\,{t}^{18}+{\frac {101682}{29}}\,{t}^{17}-{\frac {
+794493}{58}}\,{t}^{16}+{\frac {873180}{29}}\,{t}^{15}-{\frac {1161720}
+{29}}\,{t}^{14}+{\frac {918162}{29}}\,{t}^{13}-{\frac {361452}{29}}\,{
+t}^{12}+{\frac {45045}{29}}\,{t}^{10}-{\frac {13923}{58}}\,{t}^{8}+21
+\,{t}^{6}$ \\ \hline
+\end{tabular}
+\caption{Laurie's transformations}
+\label{tab:laurie_transformations}
+\end{table}
+%
+Only the first transformation for $m=2$ is supported in QMCPACK via the method
+\verb!"Laurie"!.

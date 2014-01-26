@@ -1,0 +1,89 @@
+\chapter{Quadratic and Cubic convergence order methods}
+
+\section{The Haselgrove/Niederreiter method}
+
+In \cite{niederreiter73}, a method is explained to calculate integrals over the
+unit hypercube for periodic functions having a certain smoothness.  Niederreiter
+prooves that
+if $\vec{\alpha} = (\alpha_1, \dots, \alpha_s)$, where the $\alpha_i$ are real algebraic numbers such that $1, \alpha_1, \dots, \alpha_s$ are linearly
+independent over the rationals, and if $f \in \xi^\Upsilon$ for some $\Upsilon > q$, then
+\begin{equation} \label{eq:convergence_niederreiter_improved}
+N^{-q}\sum_{n=0}^{q(N-1)}a_{Nn}^{(q)}f(\{n\vec{\alpha}\})
+        - \int_{[0,1)^s}f(\vec{x})d\vec{x} = \BigO(N^{-q}).
+\end{equation}
+The $a_{Nn}^{(q)}$ are determined from the polynomial identity
+\[
+\left( \sum_{j=0}^{N-1}z^j \right)^q = \sum_{n=0}^{q(N-1)}a_{Nn}^{(q)}z^n,
+\]
+over the field of complex numbers.  See \cite{niederreiter73} for more details.
+
+To initialize Niederreiter's second or third order integration method, a call
+to \verb!init_nied_2nd_order! respectively \verb!init_nied_3rd_order! is done:
+%
+\begin{lstlisting}
+call init_nied_3rd_order(irrationals, &
+                         func,        &
+                         params,      &
+                         periodizer)
+\end{lstlisting}
+%
+where \verb!irrationals! are the irrationals to be used for each dimension and
+func is the function to integrate.  This function takes \verb!params! as its
+parameters and \verb!periodizer! is a string of text indicating what
+periodizing method from chapter \ref{chap:periodizing_transformations} should
+be used (e.g. \verb!"Sidi"!, \verb!"Laurie"!, \verb!"none"!, \ldots).  Depending
+on the method used, some steps for the first values of $N$ are also performed
+within this initialization stage.
+
+Integration then continues with successive calls to \verb!next_nied_2nd_order!
+respectively \verb!next_nied_3rd_order!:
+\begin{lstlisting}
+do i=3,N
+  call  next_nied_3rd_order(func,           &
+                            params,         &
+                            periodizer,     &
+                            integral_value)
+end do
+\end{lstlisting}
+After the call, the value in \verb!integral_value! is the approximation to the
+integral for $N=\verb!i!$.  Note that the first value returned by a call to
+\verb!next_nied_2nd_order! or \verb!next_nied_3rd_order! is the value of the
+integral after some initialization steps for the first few values of $N$.
+
+
+\section{Sugihara and Murota's method}
+
+Sugihara and Murota \cite{sugihara82murota} use another weighting than
+Niederreiter and approximate the integral over the unit cube 
+by\footnote{In their original paper, the given sum runs from 0 to $N-1$,
+but because $w(0)=w(1)=0$ this does not make any difference.}
+%
+\begin{equation} \label{eq:sugihara_murota_approximation}
+I_N = \frac{1}{N} \sum_{k=1}^{N}w\left(\frac{k}{N}\right)f(\{k\vec{\alpha}\}),
+\end{equation}
+%
+and proposed the use of the weight function
+\[
+w_q(x) = A_qx^q(1-x)^q,
+\]
+with $A_q = \frac{(2q+1)!}{q!^2}$.  In their paper, they showed that the error
+bound is $\BigO(N^{-q})$, provided that $f \in \xi^{\Upsilon}$ for some $\Upsilon > q$.  This bound was later corrected by Kaino to be $\BigO(N^{-(q+1)})$ (See \cite{kaino02}).
+
+Sugihara and Murota's method for $q=2$ is implemented in \qmcpack and can be
+initialized with
+\begin{lstlisting}
+call init_sugihara_murota_2nd_order(irrationals, &
+                                    func,        &
+                                    params,      &
+                                    periodizer)
+\end{lstlisting}
+where the arguments are as usual.  Successive approximations can be obtained
+with calls to \verb!next_sugihara_murota_2nd_order!:
+\begin{lstlisting}
+do i=2,N
+  call next_sugihara_murota_2nd_order(func,         &
+                                    params,         &
+                                    periodizer,     &
+                                    integral_value)
+end do
+\end{lstlisting}

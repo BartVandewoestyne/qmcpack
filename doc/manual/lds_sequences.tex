@@ -1,0 +1,462 @@
+\chapter{Low-discrepancy sequences}
+
+\qmcpack{} can generate several types of low-discrepancy sequences.  The general
+procedure for generating low-discrepancy sequences is as follows:
+\begin{description}
+\item[Step 1:] Initialize the generator of the pointset by setting some
+ pointset-specific values.
+\item[Step 2:] Call either one of the `sequential' or `block'-methods to generate points.
+ A call to a sequential methods always returns the \emph{next point} in the
+ sequence while a call to a block-method immediately returns a \emph{whole set}
+ of points.
+\item[Step 3:] Use your point(s) for whatever you want to use them.
+\item[Step 4:] When done, free up the memory consumed by one the
+  pointset-specific variables that were initialized in step 1.
+\end{description}
+%
+\qmcpack{} currently supports the following types of sequences:
+%
+\begin{itemize}
+\item Weyl sequences
+\item Haber sequences
+\item Faure sequences
+\item Halton sequences
+\item Hammersley point set
+\item Latin Hypercube Samples
+\item Sobol sequences
+\end{itemize}
+%
+In the following sections, the definition of each type of sequence is given and
+it is explained how to generate points from the sequence using the \qmcpack{} library.
+
+\section{Weyl sequences}
+
+The $i$th point of the Weyl sequence \cite{weyl16} is defined as
+\[
+x_i = ( \{i\theta_1\}, \{i\theta_2\}, \ldots, \{i\theta_s\} ),
+ \qquad i=1,2,3,\dots
+\]
+where $\{x\}$ denotes the fractional part of $x$ and all the $\theta_1,
+\theta_2,\ldots,\theta_s$ are independent irrational numbers.
+The initialization of the Weyl-sequence generator within \qmcpack{} is done with
+the command
+\begin{lstlisting}
+call init_weyl(s, irrationals [, n_start] [, step])
+\end{lstlisting}
+Here, \verb!s! is the dimension of the sequence and \verb!irrationals! is an
+\verb!s!-dimensional vector representing $\theta_1, \theta_2,\dots,\theta_s$.
+\verb!n_start! is an optional dummy argument that allows the user to set an
+initial value for the index $i$ for each dimension.  \verb!n_step! then
+determines how much the index is being increased at each generation of the next
+point.  This means \qmcpack{} allows generation of Weyl sequences of the form
+\[
+x_i = ( \{(\verb!n_start(1)!+\verb!step(1)!\times i)\theta_1\}, \ldots, \{(\verb!n_start(s)!+\verb!step(s)!\times i)\theta_s\}),
+\]
+for $i=1,2,3,\ldots$  Successive points of the Weyl-sequence can be generated with the command
+\begin{lstlisting}
+call next_weyl(x)
+\end{lstlisting}
+%
+After finishing the computations, memory used by the internals of the Weyl
+sequence generator can be freed up with
+\begin{lstlisting}
+call free_weyl()
+\end{lstlisting}
+%
+Depending on the choice of the irrationals, different `instances' of the
+Weyl-sequence are known in the literature.  The following subsections explain
+which ones are supported by \qmcpack{}.
+
+\subsection{Square-root sequences}
+
+Taking the $s$ irrationals as the square roots of prime numbers
+$p_1, \ldots, p_s$, one gets the sequence
+\[
+x_i = ( \{i\sqrt{p_1}\}, \{i\sqrt{p_2}\}, \ldots, \{i\sqrt{p_s}\} ),
+ \qquad i=1,2,3,\ldots
+\]
+which can be initialized in \qmcpack{} using
+\begin{lstlisting}
+call init_square_root_seq(s [, myprimes] [, n_start] [, step])
+\end{lstlisting}
+where \verb!n_start! and \verb!n_step! have the same meaning as in the
+generation of the more general Weyl sequences and \verb!myprimes! is an optional
+\verb!s!-dimensional vector containing the primes $p_1, \ldots, p_s$ to be used.
+If no primes are specified, the first $s$ primes are taken by default.
+
+Subsequent points of the square-root sequence can then be generated with
+\begin{lstlisting}
+call next_square_root(x)
+\end{lstlisting}
+
+\subsection{gp sets}
+
+Fang and Wang \cite{fang94wang} mention another set of irrationals for what
+they call `good point sets' (gp sets).  Let $p$ be a prime and $q=p^{1/(s+1)}$,
+then one of the gp sets they mention consists of points
+\[
+x_i = ( \{iq\}, \{iq^2\}, \dots, \{iq^s\} ), \qquad i=1,2,3,\dots
+\]
+Initialization within \qmcpack{} for this set is done with
+\begin{lstlisting}
+call init_gp_set_b(s, p [, n_start] [, step])
+\end{lstlisting}
+where the scalar variable \verb!p! is the prime to be used, and the other
+parameters are as usual for Weyl sequences.  Successive points can be
+generated with
+\begin{lstlisting}
+call next_gp_set_b(x)
+\end{lstlisting}
+
+The \emph{cyclotomic field method} also appearing in Fang and Wang's book
+lists another set of irrationals and leads to a sequence of the form
+\[
+x_i = \left( \left\{i\left\{2\cos{\frac{2\pi}{p}}\right\}\right\}, \left\{i\left\{2\cos{\frac{4\pi}{p}}\right\}\right\}, \ldots, \left\{i\left\{2\cos{\frac{2\pi s}{p}}\right\}\right\} \right),
+ \qquad i=1,2,3,\ldots
+\]
+These sequences can be initialized using
+\begin{lstlisting}
+call init_gp_set_c(s, p [, n_start] [, step])
+\end{lstlisting}
+and subsequent points are to be generated with
+\begin{lstlisting}
+call next_gp_set_c(x)
+\end{lstlisting}
+
+\section{Haber sequences}
+
+The $i$th point of the Haber sequence \cite{shaw88, fang94wang} is defined as
+\[
+x_i = \left( \frac{i(i+1)}{2}\sqrt{p_1},\ldots, \frac{i(i+1)}{2}\sqrt{p_s}
+\right) \pmod{\vec{1}},
+\]
+where the $p_j$ are prime (usually $p_j$ is the $j$th prime).  Before using any routine related to the Haber sequence, it must be initialized
+with
+\begin{lstlisting}
+call init_haber(s [, startindex] [, myprimes])
+\end{lstlisting}
+Here, \verb!s! is the dimension of the sequence and \verb!startindex! and
+\verb!myprimes! are optional rank one
+array arguments of length \verb!s! containing startindices $i_1,\ldots,i_s$
+to start from for each dimension and primes $p_1,\ldots,p_s$.  If no startindices are specified, \verb!(/ 1,..., 1 /)! is taken as the startindex.  If no primes are specified, the first $s$ primes are taken.
+Subsequent Haber points can then be generated using the subroutine
+\begin{lstlisting}
+call next_haber(x)
+\end{lstlisting}
+or it is possible to generate a set of \verb!n! \verb!s!-dimensional Haber
+points using
+\begin{lstlisting}
+call haber(n, s, startindex, myprimes, x)
+\end{lstlisting}
+where \verb!x! will contain the \verb!n! \verb!s!-dimensional points after the
+call, and \verb!startindex! and \verb!myprimes! are as previously defined.
+After all calls to \verb!next_haber(x)! are done, memory has to be freed
+using
+\begin{lstlisting}
+call free_haber()
+\end{lstlisting}
+
+\section{Radical inverse-functionality}
+
+Let $b \geq 2$ be an integer, then any integer $n \geq 0$ can be written in the form
+\[
+ n = d_0 + d_1b + d_2b^2 + \cdots + d_jb^j, \qquad 0 \leq d_i < b.
+\]
+The radical inverse function $\phi_b(n)$ for base $b$ is defined by
+\begin{equation} \label{eq:radical_inverse_function}
+\phi_b(n) = \frac{d_0}{b} + \frac{d_1}{b^2} + \cdots + \frac{d_j}{b^{j+1}}.
+\end{equation}
+To get the radical inverse value of a certain integer \verb!n! in a certain
+integer base \verb!b! simply write
+\begin{lstlisting}
+phi = radical_inverse(n, b)
+\end{lstlisting}
+where \verb!phi! is a real of kind \verb!qp!.
+
+Several modifications of the radical inverse function exist.  Most of these
+change the digits $d_0,\ldots,d_j$ in a certain way so that another radical
+inverse value is obtained.  Among the first modifications is Warnock's
+\emph{folded radical inverse} function\cite{warnock72}
+\[
+\psi_b(n) = \frac{(d_0+0) \bmod b}{b} + \frac{(d_1+1) \bmod b}{b^2} + \cdots + \frac{(d_j+j) \bmod b}{b^{j+1}} + \cdots
+\]
+which can be obtained with
+\begin{lstlisting}
+phi = radical_inverse_folded(n, b)
+\end{lstlisting}
+%
+A more general form of modification is the scrambled radical inverse function
+\[
+S_b(n) = \frac{\pi_b(d_0)}{b} + \frac{\pi_b(d_1)}{b^2} + \cdots + \frac{\pi_b(d_j)}{b^{j+1}}.
+\]
+which was first introduced by Braaten and Weller \cite{braaten79weller} and can
+be called via
+\begin{lstlisting}
+phi = radical_inverse_scrambled(n, b, p)
+\end{lstlisting}
+Here, \verb!p! is a rank-1 array of length \verb!b! representing a certain
+permutation of the digits $0,\ldots,b-1$.
+
+To scramble all digits of the radical inverse function with a linear scrambling
+of the form
+\[
+f(x) = wx+c \bmod{b}
+\]
+one calls
+\begin{lstlisting}
+phi = radical_inverse_lin_scrambled(n, b, w, c)
+\end{lstlisting}
+Here, \verb!n! and \verb!b! are as usual, and \verb!w! and \verb!c! are scalar
+integers representing the parameters for the linear scrambling.
+
+Taking a closer look at \cite{atanassov04}, we see that Atanassov's
+\emph{modified radical inverse function} actually has 4 forms.  Depending on
+whether one
+uses $k_i^{j}$ or $k_i^{j+1}$ for the linear multiplication factor, and whether
+one digit-scrambles the function with a randomly selected $b_j^{(i)}$ or not,
+four types of linear digit scrambling can be derived:
+\begin{enumerate}
+\item The non-increased and non-digit scrambled version:
+\begin{equation}
+\pi_{p_i}(d_j) = d_jk_i^j \bmod p_i \label{eq:ni_ns}
+\end{equation}
+%
+\item The increased and non-digit scrambled version:
+\begin{equation}
+\pi_{p_i}(d_j) = d_jk_i^{(j+1)} \bmod p_i \label{eq:i_ns}
+\end{equation}
+%
+\item The non-increased and digit scrambled version:
+\begin{equation}
+\pi_{p_i}(d_j) = d_jk_i^j + b_j^{(i)} \bmod p_i \label{eq:ni_s}
+\end{equation}
+%
+\item The increased and digit scrambled version:
+\begin{equation}
+\pi_{p_i}(d_j) = d_jk_i^{(j+1)} + b_j^{(i)} \bmod p_i \label{eq:i_s}
+\end{equation}
+\end{enumerate}
+In \qmcpack{}, all this can be accomplished using
+\begin{lstlisting}
+call radical_inverse_modified(n, b, k [, increased] [, scrambled], radinv)
+\end{lstlisting}
+Here, \verb!n! and \verb!b! are as usual, and \verb!increased! and
+\verb!scrambled! are two optional logical arguments indicating whether
+the power $k^j$ (non-increased) or $k^{j+1}$ (increased) should be used and
+whether digit scrambling should be applied or not.
+
+A last type of radical inverse function which is described in
+\cite{warnock95} combines the initial behavior of the Weyl sequence
+\cite{weyl16} with the asymptotic behavior of the Halton sequence to construct
+what Warnock calls the \emph{PhiCf sequence}.  Each $d_i$ in
+(\ref{eq:radical_inverse_function}) is replaced with $S(b)d_i \bmod{b}$ to obtain a new kind
+of radical inverse function
+\[
+\omega_b(n) = \frac{(S(b)d_0) \bmod b}{b} + \frac{(S(b)d_1) \bmod b}{b^2} + \cdots + \frac{(S(b)d_j) \bmod b}{b^{j+1}},
+\]
+where $S(b)$ is defined to be a number such that $S(b)/b$ is close to the
+fractional part of $\sqrt{b}$.  The details are given in algorithm
+\ref{alg:warnock_s_b_search}.  In \qmcpack{} this type of radical inverse function can be obtained with
+\begin{lstlisting}
+call phi = radical_inverse_phicf(n, b)
+\end{lstlisting}
+
+\begin{algorithm}[h!]
+\begin{algorithmic}
+\STATE $X_U = \lceil b\{\sqrt{b}\} \rceil$ (where $\{x\}$ denotes the fractional part of $x$)
+\STATE $X_L = \lfloor b\{\sqrt{b}\} \rfloor$
+\STATE $\frac{X_U}{b} = /d_1, d_2, d_3, \ldots, d_k/$ (continued fraction expansion of $\frac{X_U}{b}$)
+\STATE $\frac{X_L}{b} = /e_1, e_2, e_3, \ldots, e_m/$ (continued fraction expansion of $\frac{X_L}{b}$)
+\STATE Choose $S(b)$ as either $X_U$ or $X_L$ according to:
+\begin{enumerate}
+\item The smaller sum of partial quotients
+\item The smallest largest partial quotient
+\item The nearest to the fractional part of $\sqrt{b}$
+\end{enumerate}
+\end{algorithmic}
+\caption{Warnock's algorithm to determine $S(b)$}
+\label{alg:warnock_s_b_search}
+\end{algorithm}
+
+\section{Faure sequences}
+
+If $n-1 = \sum_{j=0}^{m}d_jr^j$ is a strict positive integer, then then
+the first coordinate of the $n$'th point of the Faure sequence is given by
+\cite{faure82}
+\[
+x_n^1 = \sum_{j=0}^{m}d_jr^{-j-1}
+\]
+If $\vec{x}_n^1$ represents the vector $[d_0, d_1, \dots, d_m]^T$ and
+$\phi_p(\vec{x})$ means taking the simple radical inverse function in base
+$p$ with the
+digits contained in $\vec{x}$, then the $n$'th point of the Faure sequence is
+given by:
+\begin{eqnarray*}
+\vec{x}_n & = & (\phi_p(\vec{x}_n^1),\ \phi_p(\vec{x}_n^2),\ \phi_p(\vec{x}_n^3), \dots,\ \phi_p(\vec{x}_n^s)) \\
+          & = & (\phi_p(\vec{x}_n^1),\ \phi_p(C\vec{x}_n^1),\ \phi_p(C^2\vec{x}_n^1), \dots,\ \phi_p(C^{s-1}\vec{x}_n^1)) \\
+          & = & (\phi_p(\vec{x}_n^1),\ \phi_p(C\vec{x}_n^1),\ \phi_p(C\vec{x}_n^2), \dots,\ \phi_p(C\vec{x}_n^{s-1}))
+\end{eqnarray*}
+where $p$ is a prime greater than or equal to $s$ and the $C^j=P^j$ are
+powers of the pascal matrix $P \pmod{p}$:
+\[
+C^j = 
+P^j \bmod{p} =
+\begin{bmatrix}
+1 & 1 & 1 & 1 & 1 \\
+0 & 1 & 2 & 3 & 4 \\
+0 & 0 & 1 & 3 & 6 \\
+0 & 0 & 0 & 1 & 4 \\
+0 & 0 & 0 & 0 & 1
+\end{bmatrix}^j \bmod{p}.
+\]
+For every $j \geq 1$, the $j$-th power of $C$ is the matrix
+\[
+C^j = (c_{uv}^{(j)})
+\qquad \text{where $c_{uv}^{(j)}=j^{v-u}c_{uv}$ for all integers $u, v \geq 0$.}
+\]
+%
+Tezuka's \verb!GFaure! \cite{tezuka95} has the $j$th dimension generator matrix as
+\[
+C^{(j)} = A^{(j)}P^j \bmod{p},
+\]
+where $A^{(j)}$ is a random nonsingular lower triangular matrix and can be
+expressed as
+\[
+A^{(j)} =
+\begin{bmatrix}
+h_{11} & 0      & 0      & 0      & \ldots & 0 \\
+g_{21} & h_{22} & 0      & 0      & \ldots & 0 \\
+g_{31} & g_{32} & h_{33} & 0      & \ldots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \ddots & \vdots \\
+\end{bmatrix}_{m \times m}.
+\]
+%
+\textcolor{red}{TODO: investigate Tezuka's different scrambling types:
+\begin{itemize}
+\item Random linear scrambling
+\item Random linear-digit scrambling
+\item I-binomial scrambling
+\item Striped matrix scrambling
+\end{itemize}}
+
+\section{Halton sequences}
+
+The \emph{van der Corput} sequence in base $b$ is defined as the
+one-dimensional point set $\{\phi_b(n)\}_{n=0}^{\infty}$.  Halton
+\cite{halton60} extends this definition to the $s$-dimensional sequence
+$\{\vec{x}_i\}$, defining
+\[
+\vec{x}_n = (\phi_{b_1}(n), \dots, \phi_{b_s}(n)), \qquad n = 0, 1, \dots
+\]
+The integers $b_1, \dots, b_n$ are greater than one and pairwise prime.  Most of the time, they are chosen as the first $s$ primes.
+
+To be able to generate Halton points with \qmcpack{}, it must first be
+initialized using
+\begin{lstlisting}
+call init_halton(s, startindex, myprimes, perm_type)
+\end{lstlisting}
+where \verb!s! is an integer indicating the dimension of the points to be
+generated. \verb!startindex! and \verb!myprimes! are optional one-dimensional
+arrays of length \verb!s!.  The former contains possible starting values $n$
+for each dimension, while the latter contains the primes $b$ to be used
+as bases for the different dimensions.  If no startindex is specified, the
+default array \verb!(/ 1, ..., 1 /)! is used.  The first \verb!s! primes are
+used as default values for the bases.  Also, by default, no scrambling is
+applied.
+
+After the Halton sequence has been initialized, subsequent points of it can be
+generated and assigned to the one-dimensional array \verb!x! of length
+\verb!s! using
+\begin{lstlisting}
+call next_halton(x)
+\end{lstlisting}
+
+When all the computations are done and no more Halton points need to be
+generated,
+\begin{lstlisting}
+call free_halton()
+\end{lstlisting}
+is necessary in order to free up the memory allocated during the initialization
+phase.
+
+In analogy with the different types of radical inverse functionality as
+described in section \ref{sec:radical_inverse_functionality}, \qmcpack{}
+supports different types of scrambled Halton sequences.  Their use is
+straightforward and the arguments are similar as in section
+\ref{sec:radical_inverse_functionality}.  The available routines are
+\begin{lstlisting}
+call next_halton_scrambled(x)
+call next_halton_folded(x)
+call next_halton_phicf(x)
+call next_halton_modified(x [, increased] [, scrambled])
+\end{lstlisting}
+A last type of Halton scrambling is by Mascagni and Chi \cite{mascagni04chi}.
+They considered the linear scrambling $\pi_{b_i}(d_j)=w_id_j \pmod{b_i}$ and
+searched for optimal $w_i$.  The values they have found are tabulated in
+\cite{mascagni04chi} for the first 40 dimensions.  In \qmcpack{}, this type of
+scrambling is available via
+\begin{lstlisting}
+call next_halton_chi_permuted(x)
+\end{lstlisting}
+
+
+\section{Hammersley point set}
+
+Hammersley point sets are constructed by taking a special kind of structure for
+the first dimension, and then using a Halton sequence to fill up the other
+dimensions.  It appeared to us that in the literature, several methods are used
+to fill up the first dimension.  For example, Niederreiter
+\cite{niederreiter92}, defines the $N$-element Hammersley point set in the
+bases $b_1,\dots,b_{s-1}$ as
+\[
+\vec{x}_n = \left(\frac{n}{N}, \phi_{b_1}(n), \dots, \phi_{b_s}(n)\right), \qquad n = 0, 1, \dots, N-1
+\]
+while Halton \cite{halton60} mentions that Hammersley's suggestion is to use
+the $s$-dimensional sequence
+\[
+\vec{x}_n = \left(\frac{n}{N}, \phi_{b_1}(n), \dots, \phi_{b_s}(n)\right), \qquad n = 1, \dots, N
+\]
+and last but not least Fang and Wang define the Hammersley set as
+\[
+\vec{x}_n = \left(\frac{2n-1}{N}, \phi_{b_1}(n), \dots, \phi_{b_s}(n)\right), \qquad n = 1, \dots, N
+\]
+In \qmcpack{}, the Hammersley set can be generated with
+\begin{lstlisting}
+call hammersley(n, s [, myprimes] [, startindex] [, leap] [, def], x)
+\end{lstlisting}
+Here, all arguments are as usual, and \verb!def! is an extra optional argument
+that specifies which definition of the Hammersley set should be used.  It can be
+one of the values \verb!Halton!, \verb!Niederreiter!, \verb!Fang_Wang!
+
+\section{Randomization}
+
+\subsection{Cranley-Patterson rotations}
+
+One simple method to randomize a pointset is to make use of the so called
+`Cranley-Patterson' rotations.  The method consists in generating a random
+vector $\vec{\Delta}$ uniformly in $[0,1)^s$ and add it to each point of the
+pointset modulo 1.  So if $P_N = \{\vec{x}_i,\ i=1,\dots,N\}$ is the original
+pointset, then the randomized point-set is given by
+\[
+\tilde{P}_N = \{ \vec{x}_i + \vec{\Delta} \bmod 1,\ i=1,\ldots,N\}.
+\]
+Before randomizing points or pointsets in \qmcpack{}, the random-shift vector
+has to be initialized.  This can be done with
+\begin{lstlisting}
+call init_random_shift(s)
+\end{lstlisting}
+After that, there are two options.  After generating the next point of a
+certain pointset, you can apply the random shiftvector to it by writing
+\begin{lstlisting}
+call random_shift_point(x)
+\end{lstlisting}
+or if you have the complete pointset available as a two-dimensional array, you
+can simply randomize it via
+\begin{lstlisting}
+call random_shift_pointset(x)
+\end{lstlisting}
+Once all computations are done, the memory occupied by the random shiftvector
+can be released with
+\begin{lstlisting}
+call free_cranley_patterson()
+\end{lstlisting}

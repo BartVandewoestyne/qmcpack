@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+<head>
+  <title>Software</title>
+  <link rel="stylesheet" type="text/css"
+  href="../homepagestyle.css" />
+</head>
+
+<body>
+
+<h1>QMCPACK</h1>
+
+<h2>Description</h2>
+<p>
+QMCPACK is the name of a Fortran 95 library for doing Quasi-Monte Carlo
+related computations.  The main focus of the library is at:
+<dl>
+ <dt><em>Portability</em></dt>
+ <dd>The library is `portable' in the sense that the source code compiles
+     under a variaty of compilers and adheres to the ISO/IEC 1539-1:1997
+     Fortran 95 standard.  QMCPACK is being tested on a regular basis to compile
+     with the following compilers:
+     <ul>
+       <li><a href="http://g95.sourceforge.net/">G95</a></li>
+       <li><a href="http://gcc.gnu.org/fortran/">GNU Fortran 95</a></li>
+       <li><a href="http://www.nag.com/nagware/NP.asp">NAGWare f95 Compiler</a></li>
+       <li><a href="http://www.fortran.com/F/compilers.html">Fortran Company/NAG F compiler</a></li>
+       <li><a
+       href="http://www.intel.com/cd/software/products/asmo-na/eng/compilers/flin/index.htm">Intel(R) Fortran Compiler 9.0</a></li>
+     </ul>
+   <p>
+   Although this has not been tested, any other standard-conforming compiler
+   should be able to compile the code to something executable.  Feel free to
+   send us your successfull attempts.
+   </p>
+   <p>
+   As Linux is currently the main development platform for QMCPACK,
+   only Makefiles for Linux are included to build the executables.
+   If you however succeed in compiling QMCPACK on Windows, please let us
+   know how you did it and send us the necessary files.
+   <p>
+ <dt><em>Ease of use</em></dt>
+ <dd>Effort has been put in trying to keep the library as easy to use as
+     possibly by implementing the algorithms with a clean, easy-to-use and
+     intuitive interface.
+ <dt><em>Correctness</em></dt>
+ <dd>Several testmodules making up a kind of testsuite have been added
+     so it is easy to check if certain changes break the code or not.
+     </dd>
+ <dt><em>Speed?</em></dt>
+ <dd>In the beginning the main focus was of course on the correctness of the
+ code.  In the meanwhile, I observed however that some parts of it already
+ have quite good timing-results.  During the development, I therefore now not
+ only stress on correctness, but also try to keep speed-issues in mind.
+ Speed is however currently still not my primary focus.
+ </dd>
+</dl>
+</p>
+
+<h2>Status</h2>
+
+<p>
+These things are currently as good as supported in the preliminary version
+of QMCPACK:
+<ul>
+  <li>
+    Generation of several low-discrepancy sequences, such as
+    <ul>
+      <li>Several radical inverse functions.</li>
+      <li>Halton sequences and several scramblings of it.</li>
+      <li>Sobol sequences.</li>
+      <li>Faure sequences (graycode or non-graycode ordening)</li>
+    </ul>
+   </li>
+   <li>Randomizing pointsets with the Cranley-Patterson randomization
+       technique.</li>
+   <li>Calculation of L<sub>2</sub> discrepancy.</li>
+   <li>Test-integrals from Genz's testsuite and several other well known
+       and often used testfunctions.</li>
+   <li>
+     Several periodizing transformations as proposed by:
+     <ul>
+       <li>Sidi</li>
+       <li>Laurie</li>
+       <li>Sloan &amp; Joe</li>
+     </ul>
+   </li>
+</ul>
+</p>
+
+<h2>Obtaining QMCPACK</h2>
+<p>As the software is still in it's early stages, there is no official release
+of QMCPACK yet.  However, people who are interested can always mail <a
+href="http://www.cs.kuleuven.be/cgi-bin/e-post.pl?epost=Bart.Vandewoestyne">me</a> and ask for a copy.
+</p>
+
+<h2>Comments?  Suggestions?  Patches and bugfixes?</h2>
+<p>
+  Feedback and/or suggestions for things to add or
+  improvements are of course always welcome!  Send your requests and/or
+  comments to <a
+  href="http://www.cs.kuleuven.be/cgi-bin/e-post.pl?epost=Bart.Vandewoestyne">this
+  address</a>.</li></p>
+
+<hr />
+
+<p>
+  <a href="http://validator.w3.org/check/referer"><img
+       src="http://www.w3.org/Icons/valid-xhtml10"
+       alt="Valid XHTML 1.0!" height="31" width="88" /></a>
+</p>
+
+</body>
+</html>
